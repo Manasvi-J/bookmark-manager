@@ -1,0 +1,59 @@
+package com.webapp.controller;
+
+import com.webapp.dao.entity.BookmarkCard;
+import com.webapp.exception.URLGenerationException;
+import com.webapp.model.BookmarkRegistrationResponse;
+import com.webapp.model.BookmarkRegistrationRequest;
+import com.webapp.service.BookmarkCardService;
+import com.webapp.service.URLGeneratorService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.net.URL;
+import java.util.List;
+
+@RestController
+public class URLController{
+
+    @Autowired
+    private URLGeneratorService urlGeneratorService;
+    
+    @Autowired
+    private BookmarkCardService bookmarkCardService;
+
+    @PostMapping(path="/shortURL")
+    public ResponseEntity<BookmarkRegistrationResponse> createShortUrl(@RequestBody BookmarkRegistrationRequest bookmarkRegistrationRequest) {
+       try{
+            return new ResponseEntity<>(urlGeneratorService.generateShortURL(bookmarkRegistrationRequest),HttpStatus.OK);
+       } catch(URLGenerationException e){
+           return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+       }
+    }
+
+    @GetMapping(path="/short/{hash}", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> getOriginalUrl(@RequestBody String shortURl) {
+        try {
+            return new ResponseEntity<>(urlGeneratorService.getLongURL(shortURl), HttpStatus.OK);
+        } catch (URLGenerationException e) {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping(path = "/cards" )
+    public ResponseEntity<List<BookmarkCard>> getBookmarkCard(){
+           try{
+           return new ResponseEntity<>(bookmarkCardService.getBookmarks(),HttpStatus.OK);
+           }catch(Exception e){
+               return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+           }
+
+    
+    }
+
+}
